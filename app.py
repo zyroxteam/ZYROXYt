@@ -280,16 +280,18 @@ def direct_download(
     url: str = Query(..., description="YouTube URL or 11-char ID"),
     format: str = Query("mp4"),
     quality: str = Query("720"),
-    stream: int = Query(0, description="1 = stream through this server (curl), 0 = redirect to CDN (browser)"),
+    redirect: int = Query(0, description="1 = 302 to CDN (fast but may fail on cross-origin referer). 0 = stream through server (reliable)"),
 ):
     """Download the file.
 
-    Default (stream=0): 302-redirect straight to the CDN tunnel URL. The browser
-    downloads directly at full speed, so large videos finish reliably (no timeout /
-    incomplete .temp file). The tunnel accepts our page's origin as Referer, which the
-    browser sends automatically.
+    Default (redirect=0): stream the file through this server. The server always sends
+    the required Referer header and sets a proper filename, so the browser always gets a
+    valid, correctly-named file (never a stray .temp/.html file). This is the reliable
+    path for the web UI.
 
-    stream=1: proxy the bytes through this server (for `curl -L` without a Referer).
+    redirect=1: 302-redirect straight to the CDN. Fast, but the browser may strip the
+    Referer header on the cross-origin redirect, in which case the CDN returns a 403.
+    Only use this if you know the client will send a Referer.
     """
     vid = extract_id(url)
     if not vid:
@@ -302,11 +304,11 @@ def direct_download(
         raise HTTPException(status_code=502, detail="Backend gave no download URL")
     filename = _safe_filename(result.get("filename", f"{vid}.{fmt}"))
 
-    # Default: redirect browser straight to the CDN for a fast, reliable download.
-    if stream == 0:
+    # Optional: redirect straight to the CDN.
+    if redirect == 1:
         return RedirectResponse(url=tunnel_url, status_code=302)
 
-    # stream=1: proxy through this server (curl-friendly).
+    # Default: stream through this server (server always sends the required Referer).
     try:
         upstream = _tunnel_stream(tunnel_url)
     except Exception as e:
@@ -318,19 +320,19 @@ def direct_download(
             detail=f"Tunnel refused download (HTTP {upstream.status_code}). It may have expired; retry.")
 
     content_type = upstream.headers.get("Content-Type", "application/octet-stream")
-    content_length = upstream.headers.get("Content-Length")
 
     def gen():
         try:
-            for chunk in upstream.iter_content(chunk_size=256 * 1024):
+            for chunk in upstream.iter_content(chunk_size=1024 * 1024):
                 if chunk:
                     yield chunk
         finally:
             upstream.close()
 
     headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
-    if content_length:
-        headers["Content-Length"] = content_length
+    # Pass through a Content-Length if the CDN provided one (it usually doesn't).
+    if upstream.headers.get("Content-Length"):
+        headers["Content-Length"] = upstream.headers["Content-Length"]
 
     return StreamingResponse(
         gen(),
@@ -343,7 +345,7 @@ def direct_download(
 def download_alias(
     url: str = Query(...), format: str = Query("mp4"), quality: str = Query("720"),
 ):
-    """Alias for /dl (redirect to CDN)."""
+    """Alias for /dl (streams through server)."""
     return direct_download(url, format, quality)
 
 

@@ -88,13 +88,13 @@
       rMeta.textContent =
         (currentFmt === "mp4" ? data.quality + "p · " : data.quality + " kbps · ") +
         "tunnel ready";
-      // /dl now 302-redirects straight to the CDN -> fast, reliable download.
+      // /dl streams through the server (reliable, correct filename, never a temp file).
       saveBtn.href = "/dl?url=" + encodeURIComponent(url) +
         "&format=" + currentFmt + "&quality=" + q;
       saveBtn.setAttribute("download", cleanName(data.filename));
       resultEl.classList.remove("hidden");
 
-      setStatus("✔ Ready. Click “Save file” to download directly from the CDN.", "ok");
+      setStatus("✔ Ready. Click “Save file” to download (streams reliably).", "ok");
     } catch (e) {
       setStatus("✖ " + e.message, "err");
     } finally {
