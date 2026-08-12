@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZYROX Downloader — YouTube Video & Audio</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬇️</text></svg>">
+</head>
+<body>
+
+<header class="nav">
+  <div class="logo">ZYROX<span>MODS</span></div>
+  <a class="nav-link" href="#api">API Docs</a>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>YouTube <span class="grad">Downloader</span></h1>
+    <p class="sub">Paste a link, pick a format, and download directly — no account, no ads, no hassle.</p>
+
+    <div class="card downloader">
+      <input id="url" type="text" spellcheck="false"
+             placeholder="Paste YouTube link or 11-character video ID... (e.g. https://youtu.be/dQw4w9WgXcQ)">
+      <div class="row">
+        <div class="seg" id="fmtSeg">
+          <button class="seg-btn active" data-fmt="mp4">MP4</button>
+          <button class="seg-btn" data-fmt="mp3">MP3</button>
+        </div>
+        <select id="quality"></select>
+      </div>
+      <button id="dlBtn" class="cta">⬇ &nbsp;Download</button>
+      <div id="status" class="status"></div>
+    </div>
+  </section>
+
+  <section id="result" class="card result hidden">
+    <div class="r-top">
+      <div class="r-badge" id="rBadge">MP4</div>
+      <div>
+        <div class="r-name" id="rName">—</div>
+        <div class="r-meta" id="rMeta">—</div>
+      </div>
+    </div>
+    <div class="r-actions">
+      <a class="btn" id="saveBtn" href="#">Save file</a>
+      <button class="btn ghost" id="jsonBtn">Copy JSON</button>
+    </div>
+  </section>
+
+  <section id="api" class="card docs">
+    <h2>📡 API — use it in your own app</h2>
+    <p>Everything this page does is just two endpoints. You can call them directly.</p>
+
+    <div class="block">
+      <div class="m">Get a direct JSON link</div>
+      <pre><code id="codeJson"></code></pre>
+    </div>
+
+    <div class="block">
+      <div class="m">Stream the file (curl-friendly)</div>
+      <pre><code id="codeCurl"></code></pre>
+    </div>
+
+    <div class="block">
+      <div class="m">Endpoints</div>
+      <table>
+        <tr><td><code>GET /api/health</code></td><td>liveness check</td></tr>
+        <tr><td><code>GET /api/download</code></td><td>JSON: <code>direct_url</code>, <code>filename</code></td></tr>
+        <tr><td><code>GET /dl</code></td><td>downloads the file (streaming proxy)</td></tr>
+        <tr><td><code>GET /download</code></td><td>alias of <code>/dl</code></td></tr>
+        <tr><td><code>GET /api/y2mate/v31</code></td><td>compatibility</td></tr>
+      </table>
+    </div>
+
+    <div class="block">
+      <div class="m">Quality values</div>
+      <p><b>MP4:</b> 144 · 240 · 360 · 480 · 720 · 1080 · 1440 · 2160</p>
+      <p><b>MP3:</b> 64 · 128 · 192 · 256 · 320 kbps</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>ZYROX MODS · Educational use only · Respect copyright &amp; YouTube ToS</p>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
